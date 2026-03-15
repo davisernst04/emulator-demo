@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GameBoy Emulator Demo
+
+A Next.js demo application showcasing the `typescript-gameboy-emulator` package.
+
+## Features
+
+- 🎮 Interactive CPU state visualization (all registers: A, B, C, D, E, F, H, L, PC, SP)
+- 💾 MMU state display (ROM/RAM info)
+- 🎛️ Interactive controls: Step, Run, Stop, Reset, Load Test ROM
+- 📟 Console log showing emulator events
+- 🎨 Dark themed, visually polished UI with Tailwind CSS + shadcn/ui
+- 📱 Responsive design
+
+## Tech Stack
+
+- Next.js 16 + React + TypeScript
+- Tailwind CSS
+- shadcn/ui components
+- typescript-gameboy-emulator
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+# Install dependencies
+npm install
+
+# Run dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Build for production
+npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see the demo.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Package Integration
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This demo imports the emulator dynamically:
 
-## Learn More
+```typescript
+const { GameBoyEmulator } = await import("typescript-gameboy-emulator");
+const emu = new GameBoyEmulator();
+```
 
-To learn more about Next.js, take a look at the following resources:
+If the package fails to load, it gracefully falls back to a mock emulator for demonstration purposes.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Controls
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Step**: Execute a single instruction
+- **Run/Stop**: Start/stop continuous execution
+- **Reset**: Reset emulator to initial state
+- **Load Test ROM**: Load a sample ROM with test instructions
