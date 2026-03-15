@@ -79,21 +79,29 @@ export default function Home() {
               <button
                 onMouseDown={() => pressKey("ArrowUp")}
                 onMouseUp={() => releaseKey("ArrowUp")}
+                onTouchStart={(e) => { e.preventDefault(); pressKey("ArrowUp"); }}
+                onTouchEnd={(e) => { e.preventDefault(); releaseKey("ArrowUp"); }}
                 className="absolute top-0 left-1/2 -translate-x-1/2 w-[34%] h-[35%] active:bg-[#444] rounded-t-md z-10"
               />
               <button
                 onMouseDown={() => pressKey("ArrowDown")}
                 onMouseUp={() => releaseKey("ArrowDown")}
+                onTouchStart={(e) => { e.preventDefault(); pressKey("ArrowDown"); }}
+                onTouchEnd={(e) => { e.preventDefault(); releaseKey("ArrowDown"); }}
                 className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[34%] h-[35%] active:bg-[#444] rounded-b-md z-10"
               />
               <button
                 onMouseDown={() => pressKey("ArrowLeft")}
                 onMouseUp={() => releaseKey("ArrowLeft")}
+                onTouchStart={(e) => { e.preventDefault(); pressKey("ArrowLeft"); }}
+                onTouchEnd={(e) => { e.preventDefault(); releaseKey("ArrowLeft"); }}
                 className="absolute left-0 top-1/2 -translate-y-1/2 w-[35%] h-[34%] active:bg-[#444] rounded-l-md z-10"
               />
               <button
                 onMouseDown={() => pressKey("ArrowRight")}
                 onMouseUp={() => releaseKey("ArrowRight")}
+                onTouchStart={(e) => { e.preventDefault(); pressKey("ArrowRight"); }}
+                onTouchEnd={(e) => { e.preventDefault(); releaseKey("ArrowRight"); }}
                 className="absolute right-0 top-1/2 -translate-y-1/2 w-[35%] h-[34%] active:bg-[#444] rounded-r-md z-10"
               />
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[22%] h-[22%] bg-[#333] rounded-full shadow-inner z-0" />
@@ -105,6 +113,8 @@ export default function Home() {
                 <button
                   onMouseDown={() => pressKey("KeyX")}
                   onMouseUp={() => releaseKey("KeyX")}
+                  onTouchStart={(e) => { e.preventDefault(); pressKey("KeyX"); }}
+                  onTouchEnd={(e) => { e.preventDefault(); releaseKey("KeyX"); }}
                   className="w-12 h-12 md:w-14 md:h-14 bg-[#8b0000] rounded-full shadow-lg border-b-4 border-black/30 active:shadow-none active:translate-y-1 transition-all"
                 />
                 <span className="text-[#302058] font-black rotate-[25deg] text-[10px] md:text-xs">
@@ -115,6 +125,8 @@ export default function Home() {
                 <button
                   onMouseDown={() => pressKey("KeyZ")}
                   onMouseUp={() => releaseKey("KeyZ")}
+                  onTouchStart={(e) => { e.preventDefault(); pressKey("KeyZ"); }}
+                  onTouchEnd={(e) => { e.preventDefault(); releaseKey("KeyZ"); }}
                   className="w-14 h-14 md:w-16 md:h-16 bg-[#8b0000] rounded-full shadow-lg border-b-4 border-black/30 active:shadow-none active:translate-y-1 transition-all"
                 />
                 <span className="text-[#302058] font-black rotate-[25deg] text-[10px] md:text-xs">
@@ -130,6 +142,8 @@ export default function Home() {
               <button
                 onMouseDown={() => pressKey("ShiftLeft")}
                 onMouseUp={() => releaseKey("ShiftLeft")}
+                onTouchStart={(e) => { e.preventDefault(); pressKey("ShiftLeft"); }}
+                onTouchEnd={(e) => { e.preventDefault(); releaseKey("ShiftLeft"); }}
                 className="w-10 h-3.5 md:w-12 md:h-4 bg-[#999] rounded-full shadow-md border-b-2 border-black/20 active:shadow-none active:translate-y-0.5 transition-all"
               />
               <span className="text-[8px] md:text-[10px] font-black text-[#302058] uppercase tracking-tighter">
@@ -140,6 +154,8 @@ export default function Home() {
               <button
                 onMouseDown={() => pressKey("Enter")}
                 onMouseUp={() => releaseKey("Enter")}
+                onTouchStart={(e) => { e.preventDefault(); pressKey("Enter"); }}
+                onTouchEnd={(e) => { e.preventDefault(); releaseKey("Enter"); }}
                 className="w-10 h-3.5 md:w-12 md:h-4 bg-[#999] rounded-full shadow-md border-b-2 border-black/20 active:shadow-none active:translate-y-0.5 transition-all"
               />
               <span className="text-[8px] md:text-[10px] font-black text-[#302058] uppercase tracking-tighter">
