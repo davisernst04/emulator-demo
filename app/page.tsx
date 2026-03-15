@@ -1,269 +1,169 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-
-interface CPUState {
-  pc: number;
-  sp: number;
-  a: number;
-  b: number;
-  c: number;
-  d: number;
-  e: number;
-  h: number;
-  l: number;
-  f: number;
-  ime: boolean;
-  halted: boolean;
-}
-
-interface MMUState {
-  rom: Uint8Array;
-  ram: Uint8Array;
-}
 
 export default function Home() {
-  const [emulator, setEmulator] = useState<any>(null);
-  const [cpuState, setCpuState] = useState<CPUState | null>(null);
-  const [mmuState, setMmuState] = useState<MMUState | null>(null);
   const [isRunning, setIsRunning] = useState(false);
-  const [logs, setLogs] = useState<string[]>([]);
-  const [stepCount, setStepCount] = useState(0);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [emu, setEmu] = useState<any>(null);
 
   useEffect(() => {
-    const loadEmulator = async () => {
+    const initEmulator = async () => {
       try {
-        const { GameBoyEmulator } = await import("typescript-gameboy-emulator");
-        const emu = new GameBoyEmulator();
-        setEmulator(emu);
-        addLog("✅ Emulator initialized successfully");
-        updateStateFromEmulator(emu);
-      } catch (error) {
-        addLog(`⚠️ Using mock emulator`);
-        const mockEmu = createMockEmulator();
-        setEmulator(mockEmu);
-        updateStateFromEmulator(mockEmu);
-      }
-    };
-    loadEmulator();
-  }, []);
-
-  const addLog = useCallback((message: string) => {
-    setLogs((prev) => [...prev.slice(-9), `[${new Date().toLocaleTimeString()}] ${message}`]);
-  }, []);
-
-  const updateStateFromEmulator = (emu: any) => {
-    if (emu) {
-      const cpu = emu.getCPUState?.() || emu.cpu || null;
-      const mmu = emu.getMMUState?.() || emu.mmu || null;
-      setCpuState(cpu);
-      setMmuState(mmu);
-    }
-  };
-
-  const handleStep = useCallback(() => {
-    if (emulator?.step) {
-      emulator.step();
-      setStepCount((prev) => prev + 1);
-      updateStateFromEmulator(emulator);
-      addLog("⏭️ Step executed");
-    }
-  }, [emulator, addLog]);
-
-  const handleRun = useCallback(() => {
-    if (emulator) {
-      setIsRunning(true);
-      addLog("▶️ Running...");
-      const interval = setInterval(() => {
-        if (emulator.step) {
-          emulator.step();
-          setStepCount((prev) => prev + 1);
-          updateStateFromEmulator(emulator);
+        const emulatorPackage = await import("typescript-gameboy-emulator");
+        setEmu(emulatorPackage);
+        emulatorPackage.joypad.init();
+        if (canvasRef.current) {
+          emulatorPackage.gpu.reset();
         }
-      }, 100);
-      (emulator as any).runInterval = interval;
-    }
-  }, [emulator, addLog]);
-
-  const handleStop = useCallback(() => {
-    if (emulator?.runInterval) {
-      clearInterval(emulator.runInterval);
-      emulator.runInterval = null;
-      setIsRunning(false);
-      addLog("⏹️ Stopped");
-    }
-  }, [emulator, addLog]);
-
-  const handleReset = useCallback(() => {
-    if (emulator?.reset) {
-      emulator.reset();
-      setStepCount(0);
-      setIsRunning(false);
-      if (emulator.runInterval) {
-        clearInterval(emulator.runInterval);
-        emulator.runInterval = null;
+      } catch (error) {
+        console.error("Failed to load emulator package:", error);
       }
-      updateStateFromEmulator(emulator);
-      addLog("🔄 Reset");
-    }
-  }, [emulator, addLog]);
-
-  const handleLoadTestROM = useCallback(() => {
-    if (emulator) {
-      const testROM = new Uint8Array(32768);
-      testROM.fill(0x00);
-      testROM[0x100] = 0x3E; testROM[0x101] = 0x42;
-      testROM[0x102] = 0x06; testROM[0x103] = 0x69;
-      
-      if (emulator.loadROM) emulator.loadROM(testROM);
-      else if (emulator.mmu?.loadROM) emulator.mmu.loadROM(testROM);
-      
-      setStepCount(0);
-      updateStateFromEmulator(emulator);
-      addLog("📥 Test ROM loaded");
-    }
-  }, [emulator, addLog]);
-
-  function createMockEmulator() {
-    return {
-      cpu: { pc: 0x0100, sp: 0xFFFE, a: 0x01, b: 0x00, c: 0x13, d: 0x00, e: 0xD8, h: 0x01, l: 0x4D, f: 0xB0, ime: false, halted: false },
-      mmu: { rom: new Uint8Array(32768), ram: new Uint8Array(8192) },
-      step: function() { this.cpu.pc = (this.cpu.pc + 1) & 0xFFFF; this.cpu.a = (this.cpu.a + 1) & 0xFF; },
-      reset: function() { this.cpu.pc = 0x0100; this.cpu.a = 0x01; },
-      getCPUState: function() { return this.cpu; },
-      getMMUState: function() { return this.mmu; },
     };
-  }
+    initEmulator();
+  }, []);
 
-  const formatHex = (value: number, digits: number = 2) => `0x${value.toString(16).toUpperCase().padStart(digits, '0')}`;
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold text-white tracking-tight">🎮 TypeScript GameBoy Emulator</h1>
-          <p className="text-zinc-400">Interactive demo showcasing CPU and MMU state</p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="bg-zinc-900/50 border-zinc-700 backdrop-blur">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-xl text-white flex items-center gap-2">
-                <span className="text-blue-400">⚡</span> CPU State
-                {isRunning && <Badge className="bg-green-500/20 text-green-400 border-green-500/50">Running</Badge>}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {cpuState ? (
-                <div className="grid grid-cols-4 gap-3">
-                  <RegisterBox label="PC" value={formatHex(cpuState.pc, 4)} color="blue" />
-                  <RegisterBox label="SP" value={formatHex(cpuState.sp, 4)} color="blue" />
-                  <RegisterBox label="A" value={formatHex(cpuState.a)} color="green" />
-                  <RegisterBox label="F" value={formatHex(cpuState.f)} color="green" />
-                  <RegisterBox label="B" value={formatHex(cpuState.b)} color="purple" />
-                  <RegisterBox label="C" value={formatHex(cpuState.c)} color="purple" />
-                  <RegisterBox label="D" value={formatHex(cpuState.d)} color="orange" />
-                  <RegisterBox label="E" value={formatHex(cpuState.e)} color="orange" />
-                  <RegisterBox label="H" value={formatHex(cpuState.h)} color="pink" />
-                  <RegisterBox label="L" value={formatHex(cpuState.l)} color="pink" />
-                  <div className="col-span-2 flex items-center gap-2 bg-zinc-800 rounded-lg px-3 py-2">
-                    <span className="text-zinc-400 text-xs uppercase">Flags</span>
-                    <div className="flex gap-1">
-                      <FlagBit label="Z" set={!!(cpuState.f & 0x80)} />
-                      <FlagBit label="N" set={!!(cpuState.f & 0x40)} />
-                      <FlagBit label="H" set={!!(cpuState.f & 0x20)} />
-                      <FlagBit label="C" set={!!(cpuState.f & 0x10)} />
-                    </div>
-                  </div>
-                  <div className="col-span-2 flex items-center justify-between bg-zinc-800 rounded-lg px-3 py-2">
-                    <span className="text-zinc-400 text-xs uppercase">Status</span>
-                    <div className="flex gap-2">
-                      {cpuState.ime && <Badge className="bg-blue-500/20 text-blue-400 text-xs">IME</Badge>}
-                      {cpuState.halted && <Badge className="bg-yellow-500/20 text-yellow-400 text-xs">HALT</Badge>}
-                    </div>
-                  </div>
-                </div>
-              ) : <div className="text-zinc-500 text-center py-8">Loading CPU state...</div>}
-            </CardContent>
-          </Card>
-
-          <Card className="bg-zinc-900/50 border-zinc-700 backdrop-blur">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-xl text-white flex items-center gap-2"><span className="text-purple-400">💾</span> MMU State</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {mmuState ? (
-                <div className="space-y-4">
-                  <MemorySection title="ROM" size={mmuState.rom?.length || 32768} color="blue" preview={mmuState.rom?.slice(0, 16)} />
-                  <MemorySection title="RAM" size={mmuState.ram?.length || 8192} color="purple" preview={mmuState.ram?.slice(0, 16)} />
-                </div>
-              ) : <div className="text-zinc-500 text-center py-8">Loading MMU state...</div>}
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card className="bg-zinc-900/50 border-zinc-700 backdrop-blur">
-          <CardHeader className="pb-3"><CardTitle className="text-xl text-white">🎛️ Controls</CardTitle></CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-3">
-              <Button onClick={handleStep} disabled={!emulator || isRunning} className="bg-blue-600 hover:bg-blue-700 text-white">⏭️ Step</Button>
-              <Button onClick={isRunning ? handleStop : handleRun} disabled={!emulator} className={isRunning ? "bg-red-600 hover:bg-red-700 text-white" : "bg-green-600 hover:bg-green-700 text-white"}>{isRunning ? "⏹️ Stop" : "▶️ Run"}</Button>
-              <Button onClick={handleReset} disabled={!emulator} variant="outline" className="border-zinc-600 text-zinc-300 hover:bg-zinc-800">🔄 Reset</Button>
-              <Button onClick={handleLoadTestROM} disabled={!emulator} variant="outline" className="border-zinc-600 text-zinc-300 hover:bg-zinc-800">📥 Load Test ROM</Button>
-            </div>
-            <div className="mt-4 text-sm text-zinc-400">Step Count: <span className="text-white font-mono">{stepCount}</span></div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-black/50 border-zinc-700 backdrop-blur">
-          <CardHeader className="pb-3"><CardTitle className="text-lg text-zinc-300 font-mono">📟 Console</CardTitle></CardHeader>
-          <CardContent>
-            <div className="font-mono text-sm space-y-1 max-h-40 overflow-y-auto">
-              {logs.length === 0 ? <span className="text-zinc-600">No messages yet...</span> : logs.map((log, i) => <div key={i} className="text-zinc-400">{log}</div>)}
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="text-center text-zinc-500 text-sm">
-          <p>Powered by <code className="bg-zinc-800 px-2 py-1 rounded text-zinc-300">typescript-gameboy-emulator</code></p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function RegisterBox({ label, value, color }: { label: string; value: string; color: string }) {
-  const colors: Record<string, string> = {
-    blue: "bg-blue-500/10 border-blue-500/30 text-blue-400",
-    green: "bg-green-500/10 border-green-500/30 text-green-400",
-    purple: "bg-purple-500/10 border-purple-500/30 text-purple-400",
-    orange: "bg-orange-500/10 border-orange-500/30 text-orange-400",
-    pink: "bg-pink-500/10 border-pink-500/30 text-pink-400",
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    if (file && emu) {
+      const buffer = await file.arrayBuffer();
+      const romData = new Uint8Array(buffer);
+      if (emu.emulator._rafId) cancelAnimationFrame(emu.emulator._rafId);
+      await emu.emulator.run(romData);
+      setIsRunning(true);
+    }
   };
-  return (
-    <div className={`border rounded-lg p-2 ${colors[color]}`}>
-      <div className="text-xs uppercase opacity-70">{label}</div>
-      <div className="font-mono text-lg font-bold">{value}</div>
-    </div>
-  );
-}
 
-function FlagBit({ label, set }: { label: string; set: boolean }) {
-  return <span className={`text-xs font-mono px-1.5 py-0.5 rounded ${set ? "bg-green-500/30 text-green-400" : "bg-zinc-700 text-zinc-500"}`}>{label}</span>;
-}
+  const pressKey = (key: string) => {
+    if (emu) {
+      emu.joypad.keyDown(key);
+    }
+  };
 
-function MemorySection({ title, size, color, preview }: { title: string; size: number; color: string; preview?: Uint8Array }) {
-  const formatPreview = (data?: Uint8Array) => data ? Array.from(data).map(b => b.toString(16).padStart(2, '0')).join(' ') : '';
+  const releaseKey = (key: string) => {
+    if (emu) emu.joypad.keyUp(key);
+  };
+
   return (
-    <div className={`border rounded-lg p-3 ${color === 'blue' ? 'border-blue-500/30' : 'border-purple-500/30'}`}>
-      <div className="flex justify-between items-center mb-2">
-        <span className="text-zinc-300 font-medium">{title}</span>
-        <span className="text-zinc-500 text-sm">{size.toLocaleString()} bytes</span>
+    <div className="min-h-screen w-screen bg-[#c4c7c0] flex flex-col items-center p-4 md:p-8 lg:p-12 font-sans selection:bg-zinc-500/30 text-[#302058]">
+      {/* Handheld Device Container */}
+      <div className="w-full max-w-[460px] md:max-w-[360px] lg:max-w-[400px] flex flex-col gap-6 md:gap-6 lg:gap-8 transition-all duration-300">
+        {/* Screen Section - Matching GB aspect ratio to eliminate unequal gaps */}
+        <div className="w-full">
+          <div className="relative w-full aspect-[160/144] bg-black rounded-2xl border-8 border-black shadow-2xl overflow-hidden flex items-center justify-center">
+            <canvas
+              id="screen"
+              ref={canvasRef}
+              width="160"
+              height="144"
+              className="w-full h-full image-render-pixelated opacity-95 contrast-125 bg-black"
+            />
+
+            {!isRunning && (
+              <div className="absolute inset-0 bg-black flex flex-col items-center justify-center text-center p-6 z-20"></div>
+            )}
+          </div>
+        </div>
+
+        {/* Controller Section */}
+        <div className="w-full bg-[#c4c7c0] rounded-[40px] border-b-[8px] border-[#9ca3af] shadow-xl p-6 md:p-8 flex flex-col gap-8 md:gap-12">
+          <div className="flex justify-between items-center w-full">
+            {/* D-Pad */}
+            <div className="relative w-24 h-24 md:w-28 md:h-28 shrink-0">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[34%] h-full bg-[#333] rounded-md shadow-md" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[34%] bg-[#333] rounded-md shadow-md" />
+
+              <button
+                onMouseDown={() => pressKey("ArrowUp")}
+                onMouseUp={() => releaseKey("ArrowUp")}
+                className="absolute top-0 left-1/2 -translate-x-1/2 w-[34%] h-[35%] active:bg-[#444] rounded-t-md z-10"
+              />
+              <button
+                onMouseDown={() => pressKey("ArrowDown")}
+                onMouseUp={() => releaseKey("ArrowDown")}
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[34%] h-[35%] active:bg-[#444] rounded-b-md z-10"
+              />
+              <button
+                onMouseDown={() => pressKey("ArrowLeft")}
+                onMouseUp={() => releaseKey("ArrowLeft")}
+                className="absolute left-0 top-1/2 -translate-y-1/2 w-[35%] h-[34%] active:bg-[#444] rounded-l-md z-10"
+              />
+              <button
+                onMouseDown={() => pressKey("ArrowRight")}
+                onMouseUp={() => releaseKey("ArrowRight")}
+                className="absolute right-0 top-1/2 -translate-y-1/2 w-[35%] h-[34%] active:bg-[#444] rounded-r-md z-10"
+              />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[22%] h-[22%] bg-[#333] rounded-full shadow-inner z-0" />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-4 md:gap-6 shrink-0 rotate-[-25deg] mt-4">
+              <div className="flex flex-col items-center gap-3">
+                <button
+                  onMouseDown={() => pressKey("KeyX")}
+                  onMouseUp={() => releaseKey("KeyX")}
+                  className="w-12 h-12 md:w-14 md:h-14 bg-[#8b0000] rounded-full shadow-lg border-b-4 border-black/30 active:shadow-none active:translate-y-1 transition-all"
+                />
+                <span className="text-[#302058] font-black rotate-[25deg] text-[10px] md:text-xs">
+                  B
+                </span>
+              </div>
+              <div className="flex flex-col items-center gap-3">
+                <button
+                  onMouseDown={() => pressKey("KeyZ")}
+                  onMouseUp={() => releaseKey("KeyZ")}
+                  className="w-14 h-14 md:w-16 md:h-16 bg-[#8b0000] rounded-full shadow-lg border-b-4 border-black/30 active:shadow-none active:translate-y-1 transition-all"
+                />
+                <span className="text-[#302058] font-black rotate-[25deg] text-[10px] md:text-xs">
+                  A
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Select/Start Buttons */}
+          <div className="flex justify-center gap-10 md:gap-14 rotate-[-20deg]">
+            <div className="flex flex-col items-center gap-2">
+              <button
+                onMouseDown={() => pressKey("ShiftLeft")}
+                onMouseUp={() => releaseKey("ShiftLeft")}
+                className="w-10 h-3.5 md:w-12 md:h-4 bg-[#999] rounded-full shadow-md border-b-2 border-black/20 active:shadow-none active:translate-y-0.5 transition-all"
+              />
+              <span className="text-[8px] md:text-[10px] font-black text-[#302058] uppercase tracking-tighter">
+                Select
+              </span>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <button
+                onMouseDown={() => pressKey("Enter")}
+                onMouseUp={() => releaseKey("Enter")}
+                className="w-10 h-3.5 md:w-12 md:h-4 bg-[#999] rounded-full shadow-md border-b-2 border-black/20 active:shadow-none active:translate-y-0.5 transition-all"
+              />
+              <span className="text-[8px] md:text-[10px] font-black text-[#302058] uppercase tracking-tighter">
+                Start
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Load ROM Button */}
+        <div className="w-full pb-8 md:pb-12">
+          <div className="relative group overflow-hidden rounded-full">
+            <input
+              type="file"
+              accept=".gb,.gbc"
+              onChange={handleFileUpload}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+            />
+            <Button className="w-full bg-[#8b0000] text-white hover:bg-[#a00000] font-black py-6 md:py-8 text-xs md:text-sm uppercase tracking-widest rounded-full border-b-[6px] border-[#5a0000] transition-all active:border-b-0 active:translate-y-1.5">
+              {isRunning ? "Change ROM" : "Load ROM"}
+            </Button>
+          </div>
+        </div>
       </div>
-      <div className="font-mono text-xs text-zinc-400 bg-zinc-800/50 rounded p-2 truncate">{formatPreview(preview)}...</div>
     </div>
   );
 }

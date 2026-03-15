@@ -121,9 +121,17 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: #c4c7c0;
+    @apply text-foreground;
   }
   html {
+    background-color: #c4c7c0;
     @apply font-sans;
   }
+}
+
+.image-render-pixelated {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
 }
