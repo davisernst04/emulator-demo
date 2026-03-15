@@ -77,6 +77,7 @@ export default function Home() {
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[34%] bg-[#333] rounded-md shadow-md" />
 
               <button
+              style={{ userSelect: "none", WebkitUserSelect: "none" }}
                 onMouseDown={() => pressKey("ArrowUp")}
                 onMouseUp={() => releaseKey("ArrowUp")}
                 onTouchStart={(e) => { e.preventDefault(); pressKey("ArrowUp"); }}
@@ -84,6 +85,7 @@ export default function Home() {
                 className="absolute top-0 left-1/2 -translate-x-1/2 w-[34%] h-[35%] active:bg-[#444] rounded-t-md z-10"
               />
               <button
+              style={{ userSelect: "none", WebkitUserSelect: "none" }}
                 onMouseDown={() => pressKey("ArrowDown")}
                 onMouseUp={() => releaseKey("ArrowDown")}
                 onTouchStart={(e) => { e.preventDefault(); pressKey("ArrowDown"); }}
@@ -91,6 +93,7 @@ export default function Home() {
                 className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[34%] h-[35%] active:bg-[#444] rounded-b-md z-10"
               />
               <button
+              style={{ userSelect: "none", WebkitUserSelect: "none" }}
                 onMouseDown={() => pressKey("ArrowLeft")}
                 onMouseUp={() => releaseKey("ArrowLeft")}
                 onTouchStart={(e) => { e.preventDefault(); pressKey("ArrowLeft"); }}
@@ -98,6 +101,7 @@ export default function Home() {
                 className="absolute left-0 top-1/2 -translate-y-1/2 w-[35%] h-[34%] active:bg-[#444] rounded-l-md z-10"
               />
               <button
+              style={{ userSelect: "none", WebkitUserSelect: "none" }}
                 onMouseDown={() => pressKey("ArrowRight")}
                 onMouseUp={() => releaseKey("ArrowRight")}
                 onTouchStart={(e) => { e.preventDefault(); pressKey("ArrowRight"); }}
@@ -111,6 +115,7 @@ export default function Home() {
             <div className="flex gap-4 md:gap-6 shrink-0 rotate-[-25deg] mt-4">
               <div className="flex flex-col items-center gap-3">
                 <button
+              style={{ userSelect: "none", WebkitUserSelect: "none" }}
                   onMouseDown={() => pressKey("KeyX")}
                   onMouseUp={() => releaseKey("KeyX")}
                   onTouchStart={(e) => { e.preventDefault(); pressKey("KeyX"); }}
@@ -123,6 +128,7 @@ export default function Home() {
               </div>
               <div className="flex flex-col items-center gap-3">
                 <button
+              style={{ userSelect: "none", WebkitUserSelect: "none" }}
                   onMouseDown={() => pressKey("KeyZ")}
                   onMouseUp={() => releaseKey("KeyZ")}
                   onTouchStart={(e) => { e.preventDefault(); pressKey("KeyZ"); }}
@@ -140,6 +146,7 @@ export default function Home() {
           <div className="flex justify-center gap-10 md:gap-14 rotate-[-20deg]">
             <div className="flex flex-col items-center gap-2">
               <button
+              style={{ userSelect: "none", WebkitUserSelect: "none" }}
                 onMouseDown={() => pressKey("ShiftLeft")}
                 onMouseUp={() => releaseKey("ShiftLeft")}
                 onTouchStart={(e) => { e.preventDefault(); pressKey("ShiftLeft"); }}
@@ -152,6 +159,7 @@ export default function Home() {
             </div>
             <div className="flex flex-col items-center gap-2">
               <button
+              style={{ userSelect: "none", WebkitUserSelect: "none" }}
                 onMouseDown={() => pressKey("Enter")}
                 onMouseUp={() => releaseKey("Enter")}
                 onTouchStart={(e) => { e.preventDefault(); pressKey("Enter"); }}
